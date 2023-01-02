@@ -2,6 +2,11 @@
 
 namespace IgniterLabs\SquarePOS\Actions;
 
+use Admin\Models\Categories_model;
+use Admin\Models\Menu_item_option_values_model;
+use Admin\Models\Menu_item_options_model;
+use Admin\Models\Menu_option_values_model;
+use Admin\Models\Menu_options_model;
 use Igniter\Flame\Traits\ExtensionTrait;
 use IgniterLabs\SquarePOS\Models\SyncTask;
 use IgniterLabs\SquarePOS\Traits\LocationHelpers;
@@ -103,6 +108,51 @@ class MenuItemAction extends ModelAction
         return $this->model->updateOrCreate([
             'square_id' => $catalogObject->getId(),
         ], $attributes);
+    }
+
+    public function squareAttachCategories($squareId)
+    {
+        if ($category = Categories_model::firstWhere('square_id', $squareId))
+            $category->menus()->sync($this->model->getKey());
+    }
+
+    public function squareAttachModifierLists(Collection $modifierListObjects, Collection $modifierListInfo)
+    {
+        $menuItemOptions = $modifierListObjects->map(function (CatalogObject $modifierListObject) use ($modifierListInfo) {
+            $modifierListInfoObject = $modifierListInfo->first(function ($object) use ($modifierListObject) {
+                return $object->getModifierListId() === $modifierListObject->getId();
+            });
+
+            if (!$menuOption = Menu_options_model::firstWhere('square_id', $modifierListObject->getId()))
+                return false;
+
+            $menuOptionValues = Menu_option_values_model::whereIn('square_id',
+                collect($modifierListObject->getModifierListData()->getModifiers())->map(function ($modifier) {
+                    return $modifier->getId();
+                })->toArray()
+            )->get()->map(function ($menuOptionValue) {
+                return ['option_value_id' => $menuOptionValue->option_value_id];
+            });
+
+            if ($menuOptionValues->isEmpty())
+                return false;
+
+            return [
+                'option_id' => $menuOption->getKey(),
+                'priority' => $modifierListObject->getModifierListData()->getOrdinal(),
+                'min_selected' => $modifierListInfoObject->getMinSelectedModifiers(),
+                'max_selected' => $modifierListInfoObject->getMaxSelectedModifiers(),
+                'menu_option_values' => $menuOptionValues->all(),
+            ];
+        })->filter();
+
+        Menu_item_option_values_model::unguard();
+
+        Menu_item_options_model::unguarded(function () use ($menuItemOptions) {
+            return $this->model->addMenuOption($menuItemOptions->all());
+        });
+
+        Menu_item_option_values_model::reguard();
     }
 
     protected function makeSquareLocationOverrideObjects()

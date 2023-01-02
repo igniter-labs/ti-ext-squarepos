@@ -11,9 +11,9 @@ class PushItems extends AbstractSyncPipe
 {
     public function execute()
     {
-        Menus_model::squareExportItems($this->syncTask, function ($menuItems) {
-            $this->syncTask->note('Exporting menu items into square');
+        $this->syncTask->note('Exporting menu items into square');
 
+        Menus_model::squareExportItems($this->syncTask, function ($menuItems) {
             $menuItems = $this->removeCleanVersions($menuItems);
 
             if ($menuItems->isNotEmpty()) {
@@ -22,6 +22,9 @@ class PushItems extends AbstractSyncPipe
                 $response = $this->square->batchUpsertCatalogObjects([$batch]);
 
                 $this->updateSquareAttributes($menuItems, $response);
+            }
+            else {
+                $this->syncTask->note('No menu items to export');
             }
         });
     }

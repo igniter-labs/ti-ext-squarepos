@@ -12,31 +12,33 @@ class PullCategories extends AbstractSyncPipe
             'object_types' => ['CATEGORY'],
             'limit' => $this->syncTask->batchSize(),
             'cursor' => $this->syncTask->getConfigData('categoryCursor'),
-            'beginTime' => $this->syncTask->getConfigData('beginTimes.category'),
+            'beginTime' => $this->syncTask->getConfigData('categoryBeginTime'),
         ];
 
         $response = $this->square->searchCatalogObjects($options);
 
         $nextBeingTime = now()->toISOString();
 
-        Categories_model::squareImportItems($response->getObjects(), function ($catalogObject, $model) {
-            $this->syncTask->note('Importing categories from square');
+        $this->syncTask->note('Importing categories from square');
 
+        Categories_model::squareImportItems($response->getObjects(), function ($catalogObject, $staticModel) {
             if ($catalogObject->getIsDeleted()) {
-                if ($model->newQuery()->where('square_id', $catalogObject->getId())->delete()) {
+                if ($staticModel->newQuery()->where('square_id', $catalogObject->getId())->delete()) {
                     $this->syncTask->noteDeleted($catalogObject, $catalogObject->getCategoryData()->getName());
                 }
-            } else {
-                $category = $model->createFromSquareCategory($catalogObject);
+            }
+            else {
+                $category = $staticModel->createFromSquareCategory($catalogObject);
 
                 $category->squareAttachLocation($catalogObject);
 
-                $this->syncTask->noteUpdated($category, $catalogObject->getCategoryData()->getName());
+                if ($category->wasChanged())
+                    $this->syncTask->noteUpdated($category, $catalogObject->getCategoryData()->getName());
             }
         });
 
         $this->handleResponseCursor($response, 'categoryCursor');
 
-        $this->syncTask->setConfigData('beginTimes.category', $nextBeingTime)->save();
+        $this->syncTask->setConfigData('categoryBeginTime', $nextBeingTime)->save();
     }
 }

@@ -1,7 +1,7 @@
 <div>
-    @empty($formModel->connection_data['status'])
+    @empty($formModel->connection_data_status)
         <a
-            class="btn btn-success"
+            class="btn btn-success text-white"
             href="<?= admin_url('igniterlabs/squarepos/merchant/authorize') ?>"
         ><i class="fa fa-link"></i>&nbsp;&nbsp;<?= lang('igniterlabs.squarepos::default.button_connect') ?></a>
     @else

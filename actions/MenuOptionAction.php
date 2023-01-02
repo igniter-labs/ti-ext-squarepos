@@ -71,15 +71,17 @@ class MenuOptionAction extends ModelAction
             ->all();
 
         $attributes = [
-            'name' => $catalogObject->getModifierListData()->getName(),
+            'option_name' => $catalogObject->getModifierListData()->getName(),
             'priority' => $catalogObject->getModifierListData()->getOrdinal(),
             'display_type' => $catalogObject->getModifierListData()->getSelectionType() === 'MULTIPLE' ? 'checkbox' : 'radio',
             'square_version' => $catalogObject->getVersion(),
             'values' => $optionValues,
         ];
 
-        return $this->model->updateOrCreate([
-            'square_id' => $catalogObject->getId(),
-        ], $attributes);
+        return $this->model::unguarded(function () use ($catalogObject, $attributes) {
+            return $this->model->updateOrCreate([
+                'square_id' => $catalogObject->getId(),
+            ], $attributes);
+        });
     }
 }

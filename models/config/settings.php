@@ -28,7 +28,7 @@ return [
         ],
         'tabs' => [
             'fields' => [
-                'connection_data[status]' => [
+                'connection_data_status' => [
                     'tab' => 'igniterlabs.squarepos::default.text_tab_general',
                     'label' => 'igniterlabs.squarepos::default.label_connection',
                     'type' => 'partial',
@@ -43,7 +43,7 @@ return [
                     'comment' => 'igniterlabs.squarepos::default.help_system_record',
                     'trigger' => [
                         'action' => 'show',
-                        'field' => 'connection_data[status]',
+                        'field' => 'connection_data_status',
                         'condition' => 'value[1]',
                     ],
                 ],
@@ -55,13 +55,13 @@ return [
                     'comment' => 'igniterlabs.squarepos::default.help_sync_inventory',
                     'trigger' => [
                         'action' => 'show',
-                        'field' => 'connection_data[status]',
+                        'field' => 'connection_data_status',
                         'condition' => 'value[1]',
                     ],
                 ],
 
                 'location_mappings' => [
-                    'tab' => 'igniterlabs.squarepos::default.text_tab_location',
+                    'tab' => 'igniterlabs.squarepos::default.text_tab_general',
                     'label' => 'igniterlabs.squarepos::default.label_location',
                     'type' => 'repeater',
                     'span' => 'left',
@@ -82,9 +82,15 @@ return [
                     ],
                     'trigger' => [
                         'action' => 'show',
-                        'field' => 'connection_data[status]',
+                        'field' => 'connection_data_status',
                         'condition' => 'value[1]',
                     ],
+                ],
+
+                'sync_history' => [
+                    'tab' => 'igniterlabs.squarepos::default.text_tab_history',
+                    'type' => 'partial',
+                    'path' => '$/igniterlabs/squarepos/views/settings/field_history',
                 ],
             ],
         ],

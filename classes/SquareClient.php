@@ -54,10 +54,18 @@ class SquareClient
         $body = new SearchCatalogObjectsRequest();
         $body->setIncludeRelatedObjects($related);
         $body->setIncludeDeletedObjects($deleted);
-        $body->setObjectTypes($options['types'] ?? null);
-        $body->setCursor($options['cursor'] ?? null);
-        $body->setLimit($options['limit'] ?? null);
-        $body->setBeginTime($options['beginTime'] ?? null);
+
+        if ($types = array_get($options, 'types'))
+            $body->setObjectTypes($types);
+
+        if ($cursor = array_get($options, 'cursor'))
+            $body->setCursor($cursor);
+
+        if ($limit = array_get($options, 'limit'))
+            $body->setLimit($limit);
+
+        if ($beginTime = array_get($options, 'beginTime'))
+            $body->setBeginTime($beginTime);
 
         $response = $this->client->getCatalogApi()->searchCatalogObjects($body);
 
@@ -77,6 +85,17 @@ class SquareClient
         }
 
         return new CatalogResponse($response->getResult());
+    }
+
+    public function retrieveCatalogObject(string $id)
+    {
+        $response = $this->client->getCatalogApi()->retrieveCatalogObject($id, true);
+
+        if (!$response->isSuccess()) {
+            throw new ClientException($response);
+        }
+
+        return $response->getResult();
     }
 
     public function batchRetrieveCatalogObjects(array $ids, bool $include = false)

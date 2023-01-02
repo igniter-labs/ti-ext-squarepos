@@ -52,7 +52,7 @@ class CategoryAction extends ModelAction
         return $categoryObject;
     }
 
-    protected function createFromSquareCategory(CatalogObject $catalogObject)
+    public function createFromSquareCategory(CatalogObject $catalogObject)
     {
         $attributes = [
             'name' => $catalogObject->getCategoryData()->getName(),

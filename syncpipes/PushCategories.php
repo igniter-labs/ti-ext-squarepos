@@ -11,9 +11,9 @@ class PushCategories extends AbstractSyncPipe
 {
     public function execute()
     {
-        Categories_model::squareExportItems($this->syncTask, function ($categories) {
-            $this->syncTask->note('Exporting categories into square');
+        $this->syncTask->note('Exporting categories into square');
 
+        Categories_model::squareExportItems($this->syncTask, function ($categories) {
             $categories = $this->removeCleanVersions($categories);
 
             if ($categories->isNotEmpty()) {
@@ -22,6 +22,9 @@ class PushCategories extends AbstractSyncPipe
                 $response = $this->square->batchUpsertCatalogObjects([$batch]);
 
                 $this->updateSquareAttributes($categories, $response);
+            }
+            else {
+                $this->syncTask->note('No categories to export');
             }
         });
     }

@@ -13,7 +13,6 @@ class CreateSquareColumns extends Migration
         'categories',
         'menu_options',
         'menu_option_values',
-        'menu_item_option_values',
     ];
 
     /**

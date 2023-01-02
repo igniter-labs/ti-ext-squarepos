@@ -39,19 +39,18 @@ class SyncCatalogJob implements ShouldQueue
 
         $syncTask->setSyncJob($this);
 
-        try {
-            $this->getSyncPipes($syncTask)->each(function (string $syncPipe) use ($syncTask) {
+        $this->getSyncPipes($syncTask)->each(function (string $syncPipe) use ($syncTask) {
+            try {
                 (new $syncPipe($syncTask))->execute();
+            }
+            catch (Throwable | Exception $ex) {
+                $syncTask->noteException($ex);
+            }
 
-                $syncTask->save();
-            });
+            $syncTask->save();
+        });
 
-            $syncTask->markAsComplete();
-        } catch (Throwable | Exception $ex) {
-            $syncTask->saveException($ex);
-
-            throw $ex;
-        }
+        $syncTask->markAsComplete();
     }
 
     protected function getSyncPipes($syncTask)
@@ -62,7 +61,8 @@ class SyncCatalogJob implements ShouldQueue
             $pipes[] = SyncPipes\PullCategories::class;
             $pipes[] = SyncPipes\PullItemOptions::class;
             $pipes[] = SyncPipes\PullItems::class;
-        } else {
+        }
+        else {
             $pipes[] = SyncPipes\PushCategories::class;
             $pipes[] = SyncPipes\PushItemOptions::class;
             $pipes[] = SyncPipes\PushItems::class;

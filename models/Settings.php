@@ -13,7 +13,7 @@ class Settings extends Model
 
     public const SQUARE_SOR = 'square';
 
-    public const ENDPOINT = 'https://tastyigniter.com/connect/';
+    public const ENDPOINT = 'https://tasty-web.wip/connect/';
 
     protected static $locationCache;
 
@@ -40,7 +40,8 @@ class Settings extends Model
                 ->mapWithKeys(function (Location $location) {
                     return [$location->getId() => $location->getName()];
                 })->all();
-        } catch (ClientException $ex) {
+        }
+        catch (ClientException $ex) {
             flash()->error($ex->getMessage())->now();
         }
 
@@ -50,9 +51,16 @@ class Settings extends Model
     public function getSourceOptions()
     {
         return [
-            static::SQUARE_SOR => 'igniterlabs.squarepos::default.text_square',
             static::IGNITER_SOR => 'igniterlabs.squarepos::default.text_tastyigniter',
+            static::SQUARE_SOR => 'igniterlabs.squarepos::default.text_square',
         ];
+    }
+
+    public function listSyncHistory()
+    {
+        return SyncTask::query()
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
     }
 
     public static function getSystemOfRecord()
@@ -91,12 +99,12 @@ class Settings extends Model
 
     public static function isConnected()
     {
-        return array_key_exists('status', self::connectionData());
+        return (bool)self::get('connection_data_status', false);
     }
 
     public static function getAuthorizeUrl($params)
     {
-        $params['scopes'] = implode(',', [
+        $params['scope'] = implode(' ', [
             'MERCHANT_PROFILE_READ',
             'PAYMENTS_READ', 'PAYMENTS_WRITE',
             'ORDERS_READ', 'ORDERS_WRITE',
@@ -126,15 +134,16 @@ class Settings extends Model
             'access_token',
             'refresh_token',
             'expires_at',
+            'environment',
         ]);
 
-        $data['status'] = !empty($data['access_token']);
-
         self::set('connection_data', $data);
+        self::set('connection_data_status', !empty($data['access_token']));
     }
 
     public static function clearConnectionData()
     {
         self::set('connection_data', []);
+        self::set('connection_data_status', false);
     }
 }

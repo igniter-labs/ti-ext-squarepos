@@ -13,27 +13,31 @@ class PullItemOptions extends AbstractSyncPipe
             'object_types' => ['MODIFIER_LIST'],
             'cursor' => $this->syncTask->getConfigData('modifierCursor'),
             'limit' => $this->syncTask->batchSize(),
-            'beginTime' => $this->syncTask->getConfigData('beginTimes.modifier'),
+            'beginTime' => $this->syncTask->getConfigData('modifierBeginTime'),
         ];
 
         $nextBeingTime = now()->toISOString();
 
         $response = $this->square->searchCatalogObjects($options, true);
 
-        Menu_options_model::squareImportItems($response->getObjects(), function (CatalogObject $catalogObject, $model) {
-            $this->syncTask->note('Importing menu options from square');
+        $this->syncTask->note('Importing menu options from square');
 
+        Menu_options_model::squareImportItems($response->getObjects(), function (CatalogObject $catalogObject, $staticModel) {
             if ($catalogObject->getIsDeleted()) {
-                $model->newQuery()->where('square_id', $catalogObject->getId())->delete();
-            } else {
-                $menuOption = $model->createFromSquareModifierList($catalogObject);
+                $staticModel->newQuery()->where('square_id', $catalogObject->getId())->delete();
+            }
+            else {
+                $menuOption = $staticModel->createFromSquareModifierList($catalogObject);
 
                 $menuOption->squareAttachLocation($catalogObject);
+
+                if ($menuOption->wasChanged())
+                    $this->syncTask->noteUpdated($menuOption, $catalogObject->getModifierListData()->getName());
             }
         });
 
         $this->handleResponseCursor($response, 'modifierCursor');
 
-        $this->syncTask->setConfigData('beginTimes.modifier', $nextBeingTime)->save();
+        $this->syncTask->setConfigData('modifierBeginTime', $nextBeingTime)->save();
     }
 }

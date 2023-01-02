@@ -4,6 +4,7 @@ return [
     'text_tab_general' => 'General',
     'text_tab_location' => 'Location Mappings',
     'text_tab_tasks' => 'Sync Tasks',
+    'text_tab_history' => 'Sync History',
     'text_connect' => 'Connect to Square POS',
     'text_disconnect' => 'Disconnect from Square POS',
     'text_square' => 'Square POS (overwrite TastyIgniter menu items)',
@@ -33,4 +34,8 @@ return [
     'help_system_record' => 'To ensure data integrity, choose the authoritative source for synced items. Square Inventory is always checked for changes when sync is enabled.',
     'help_sync_inventory' => 'Enable to fetch inventory changes from Square periodically and update in TastyIgniter.',
     'help_handle_missing' => 'Items removed in the Square will be disabled in TastyIgniter.',
+
+    'alert_not_connected' => 'Please make sure you have authorized the connection to Square POS',
+    'alert_no_location_mapping' => 'Please make sure you have location mapping configured to sync',
+    'alert_sync_started' => 'Syncing items from Square POS, this may take a while...',
 ];

@@ -8,9 +8,9 @@ class PushStocks extends AbstractSyncPipe
 {
     public function execute()
     {
-        Stocks_model::squareExportItems($this->syncTask, function ($stocks) {
-            $this->syncTask->note('Exporting menu item stocks into square');
+        $this->syncTask->note('Exporting menu item stocks into square');
 
+        Stocks_model::squareExportItems($this->syncTask, function ($stocks) {
             $stocks = $this->removeCleanVersions($stocks);
 
             if ($stocks->isNotEmpty()) {

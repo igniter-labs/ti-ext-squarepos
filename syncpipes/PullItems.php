@@ -13,39 +13,47 @@ class PullItems extends AbstractSyncPipe
             'object_types' => ['ITEM'],
             'cursor' => $this->syncTask->getConfigData('itemCursor'),
             'limit' => $this->syncTask->batchSize(),
-            'beginTime' => $this->syncTask->getConfigData('beginTimes.item'),
+            'beginTime' => $this->syncTask->getConfigData('itemBeginTime'),
         ];
 
         $nextBeingTime = now()->toISOString();
 
         $response = $this->square->searchCatalogObjects($options, true);
 
-        $this->syncTask->setConfigData('beginTimes.item', now()->toISOString())->save();
+        $this->syncTask->note('Importing menu items from square');
 
-        Menus_model::squareImportItems($response->getObjects(), function (CatalogObject $catalogObject, $model) {
-            $this->syncTask->note('Importing menu items from square');
-
+        Menus_model::squareImportItems($response->getObjects(), function (CatalogObject $catalogObject, $staticModel) {
             if ($catalogObject->getIsDeleted()) {
-                if ($model->newQuery()->where('square_id', $catalogObject->getId())->delete()) {
+                if ($staticModel->newQuery()->where('square_id', $catalogObject->getId())->delete()) {
                     $this->syncTask->noteDeleted($catalogObject, $catalogObject->getCategoryData()->getName());
                 }
-
-                return true;
             }
+            else {
+                $response = $this->square->retrieveCatalogObject($catalogObject->getId());
+                $catalogObject = $response->getObject();
 
-            $menuItem = $model->createFromSquareItem($catalogObject);
+                $menuItem = $staticModel->createFromSquareItem($catalogObject);
 
-            $menuItem->squareAttachLocation($catalogObject);
+                $menuItem->squareAttachLocation($catalogObject);
 
-            // attach categories
+                $menuItem->squareAttachCategories($catalogObject->getItemData()->getCategoryId());
 
-            // attach stocks
+                $modifierListObjects = collect($response->getRelatedObjects())
+                    ->filter(function (CatalogObject $catalogObject) {
+                        return $catalogObject->getType() === 'MODIFIER_LIST';
+                    });
 
-            // attach menu item options
+                $menuItem->squareAttachModifierLists($modifierListObjects,
+                    collect($catalogObject->getItemData()->getModifierListInfo())
+                );
+
+                if ($menuItem->wasChanged())
+                    $this->syncTask->noteUpdated($menuItem, $catalogObject->getItemData()->getName());
+            }
         });
 
         $this->handleResponseCursor($response, 'itemCursor');
 
-        $this->syncTask->setConfigData('beginTimes.modifier', $nextBeingTime)->save();
+        $this->syncTask->setConfigData('itemBeginTime', $nextBeingTime)->save();
     }
 }

@@ -80,7 +80,9 @@ class SyncTask extends Model
             $this->syncJob->logsOutput->writeln($note);
         }
 
-        $this->attributes['notes'][] = $note;
+        $notes = (array)$this->notes;
+        $notes[] = $note;
+        $this->notes = $notes;
 
         return $this;
     }
@@ -98,6 +100,24 @@ class SyncTask extends Model
 
     public function noteDeleted($model, string $name)
     {
+        return $this->note(sprintf(
+            '%s (%s) deleted: %s (%s)',
+            $name,
+            $model->getKey(),
+            $model->square_version,
+            $model->square_id
+        ));
+    }
+
+    public function noteException(Throwable $exception)
+    {
+        $this->note(sprintf('Exception: %s (%s)', $exception->getMessage(), $exception->getCode()));
+
+        $this->exception = $exception->getTrace();
+
+        $this->save();
+
+        return $this;
     }
 
     public function getConfigData($key, $default = null)
@@ -123,19 +143,6 @@ class SyncTask extends Model
         array_forget($configData, $key);
 
         $this->config_data = $configData;
-    }
-
-    public function saveException(Throwable $exception)
-    {
-        $this->exception = [
-            'code' => $exception->getCode(),
-            'message' => $exception->getMessage(),
-            'trace' => $exception->getTraceAsString(),
-        ];
-
-        $this->save();
-
-        return $this;
     }
 
     public function markAsComplete()
