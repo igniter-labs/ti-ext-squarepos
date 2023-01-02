@@ -41,16 +41,14 @@ class Merchant extends AdminController
         try {
             if (strlen(input('error_message'))) {
                 flash()->error(input('error_message'));
-            }
-            else {
+            } else {
                 if ($this->getSession('state') !== input('state')) {
                     throw new ApplicationException('Access denied, invalid state');
                 }
 
                 Settings::storeConnectionData(input());
             }
-        }
-        catch (Exception $ex) {
+        } catch (Exception $ex) {
             flash()->error($ex->getMessage());
         }
 
@@ -60,11 +58,13 @@ class Merchant extends AdminController
     public function sync($context, $action = null)
     {
         rescue(function () {
-            if (!Settings::isConnected())
+            if (!Settings::isConnected()) {
                 throw new ApplicationException(lang('igniterlabs.squarepos::default.alert_not_connected'));
+            }
 
-            if (Settings::locationMapping()->isEmpty())
+            if (Settings::locationMapping()->isEmpty()) {
                 throw new ApplicationException(lang('igniterlabs.squarepos::default.alert_no_location_mapping'));
+            }
 
             Dispatcher::create(SyncCatalogJob::class)->dispatch();
 

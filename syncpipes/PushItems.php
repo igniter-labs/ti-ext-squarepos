@@ -22,8 +22,7 @@ class PushItems extends AbstractSyncPipe
                 $response = $this->square->batchUpsertCatalogObjects([$batch]);
 
                 $this->updateSquareAttributes($menuItems, $response);
-            }
-            else {
+            } else {
                 $this->syncTask->note('No menu items to export');
             }
         });

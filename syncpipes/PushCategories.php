@@ -22,8 +22,7 @@ class PushCategories extends AbstractSyncPipe
                 $response = $this->square->batchUpsertCatalogObjects([$batch]);
 
                 $this->updateSquareAttributes($categories, $response);
-            }
-            else {
+            } else {
                 $this->syncTask->note('No categories to export');
             }
         });

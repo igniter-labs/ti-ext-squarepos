@@ -112,8 +112,9 @@ class MenuItemAction extends ModelAction
 
     public function squareAttachCategories($squareId)
     {
-        if ($category = Categories_model::firstWhere('square_id', $squareId))
+        if ($category = Categories_model::firstWhere('square_id', $squareId)) {
             $category->menus()->sync($this->model->getKey());
+        }
     }
 
     public function squareAttachModifierLists(Collection $modifierListObjects, Collection $modifierListInfo)
@@ -123,10 +124,12 @@ class MenuItemAction extends ModelAction
                 return $object->getModifierListId() === $modifierListObject->getId();
             });
 
-            if (!$menuOption = Menu_options_model::firstWhere('square_id', $modifierListObject->getId()))
+            if (!$menuOption = Menu_options_model::firstWhere('square_id', $modifierListObject->getId())) {
                 return false;
+            }
 
-            $menuOptionValues = Menu_option_values_model::whereIn('square_id',
+            $menuOptionValues = Menu_option_values_model::whereIn(
+                'square_id',
                 collect($modifierListObject->getModifierListData()->getModifiers())->map(function ($modifier) {
                     return $modifier->getId();
                 })->toArray()
@@ -134,8 +137,9 @@ class MenuItemAction extends ModelAction
                 return ['option_value_id' => $menuOptionValue->option_value_id];
             });
 
-            if ($menuOptionValues->isEmpty())
+            if ($menuOptionValues->isEmpty()) {
                 return false;
+            }
 
             return [
                 'option_id' => $menuOption->getKey(),

@@ -55,17 +55,21 @@ class SquareClient
         $body->setIncludeRelatedObjects($related);
         $body->setIncludeDeletedObjects($deleted);
 
-        if ($types = array_get($options, 'types'))
+        if ($types = array_get($options, 'types')) {
             $body->setObjectTypes($types);
+        }
 
-        if ($cursor = array_get($options, 'cursor'))
+        if ($cursor = array_get($options, 'cursor')) {
             $body->setCursor($cursor);
+        }
 
-        if ($limit = array_get($options, 'limit'))
+        if ($limit = array_get($options, 'limit')) {
             $body->setLimit($limit);
+        }
 
-        if ($beginTime = array_get($options, 'beginTime'))
+        if ($beginTime = array_get($options, 'beginTime')) {
             $body->setBeginTime($beginTime);
+        }
 
         $response = $this->client->getCatalogApi()->searchCatalogObjects($body);
 

@@ -22,8 +22,7 @@ class PushItemOptions extends AbstractSyncPipe
                 $response = $this->square->batchUpsertCatalogObjects([$batch]);
 
                 $this->updateSquareAttributes($menuOptions, $response);
-            }
-            else {
+            } else {
                 $this->syncTask->note('No menu options to export');
             }
         });

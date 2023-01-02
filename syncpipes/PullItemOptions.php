@@ -25,14 +25,14 @@ class PullItemOptions extends AbstractSyncPipe
         Menu_options_model::squareImportItems($response->getObjects(), function (CatalogObject $catalogObject, $staticModel) {
             if ($catalogObject->getIsDeleted()) {
                 $staticModel->newQuery()->where('square_id', $catalogObject->getId())->delete();
-            }
-            else {
+            } else {
                 $menuOption = $staticModel->createFromSquareModifierList($catalogObject);
 
                 $menuOption->squareAttachLocation($catalogObject);
 
-                if ($menuOption->wasChanged())
+                if ($menuOption->wasChanged()) {
                     $this->syncTask->noteUpdated($menuOption, $catalogObject->getModifierListData()->getName());
+                }
             }
         });
 

@@ -27,8 +27,7 @@ class PullItems extends AbstractSyncPipe
                 if ($staticModel->newQuery()->where('square_id', $catalogObject->getId())->delete()) {
                     $this->syncTask->noteDeleted($catalogObject, $catalogObject->getCategoryData()->getName());
                 }
-            }
-            else {
+            } else {
                 $response = $this->square->retrieveCatalogObject($catalogObject->getId());
                 $catalogObject = $response->getObject();
 
@@ -43,12 +42,14 @@ class PullItems extends AbstractSyncPipe
                         return $catalogObject->getType() === 'MODIFIER_LIST';
                     });
 
-                $menuItem->squareAttachModifierLists($modifierListObjects,
+                $menuItem->squareAttachModifierLists(
+                    $modifierListObjects,
                     collect($catalogObject->getItemData()->getModifierListInfo())
                 );
 
-                if ($menuItem->wasChanged())
+                if ($menuItem->wasChanged()) {
                     $this->syncTask->noteUpdated($menuItem, $catalogObject->getItemData()->getName());
+                }
             }
         });
 

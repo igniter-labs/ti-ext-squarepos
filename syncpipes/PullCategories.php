@@ -26,14 +26,14 @@ class PullCategories extends AbstractSyncPipe
                 if ($staticModel->newQuery()->where('square_id', $catalogObject->getId())->delete()) {
                     $this->syncTask->noteDeleted($catalogObject, $catalogObject->getCategoryData()->getName());
                 }
-            }
-            else {
+            } else {
                 $category = $staticModel->createFromSquareCategory($catalogObject);
 
                 $category->squareAttachLocation($catalogObject);
 
-                if ($category->wasChanged())
+                if ($category->wasChanged()) {
                     $this->syncTask->noteUpdated($category, $catalogObject->getCategoryData()->getName());
+                }
             }
         });
 
