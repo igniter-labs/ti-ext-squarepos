@@ -23,11 +23,13 @@ class Webhook extends Controller
         $eventName = Str::studly(str_replace('.', '_', $eventType));
         $methodName = 'handle'.$eventName;
 
-        if (!Settings::validateWebhook($payload, $token))
+        if (!Settings::validateWebhook($payload, $token)) {
             return response()->json(['status' => 'Webhook validation failed'], 401);
+        }
 
-        if (method_exists($this, $methodName))
+        if (method_exists($this, $methodName)) {
             $this->$methodName($payload);
+        }
 
         return response()->json(['status' => 'ok']);
     }
