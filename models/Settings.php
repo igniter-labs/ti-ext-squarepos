@@ -2,9 +2,9 @@
 
 namespace IgniterLabs\SquarePOS\Models;
 
+use Exception;
 use Igniter\Flame\Database\Model;
 use IgniterLabs\SquarePOS\Classes\SquareClient;
-use IgniterLabs\SquarePOS\Exceptions\ClientException;
 use Square\Models\Location;
 
 class Settings extends Model
@@ -40,7 +40,8 @@ class Settings extends Model
                 ->mapWithKeys(function (Location $location) {
                     return [$location->getId() => $location->getName()];
                 })->all();
-        } catch (ClientException $ex) {
+        }
+        catch (Exception $ex) {
             flash()->error($ex->getMessage())->now();
         }
 
@@ -82,15 +83,6 @@ class Settings extends Model
         return (int)self::get('sync_batch_size', 300);
     }
 
-    public static function getSearchBeginTimes()
-    {
-        return self::get('search_begin_times', []);
-    }
-
-    public static function setSearchBeginTimes($value)
-    {
-        self::set('search_begin_times', $value);
-    }
 
     //
     //

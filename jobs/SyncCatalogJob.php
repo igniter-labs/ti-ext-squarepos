@@ -22,13 +22,6 @@ class SyncCatalogJob implements ShouldQueue
 
     public $uuid = '';
 
-    /**
-     * The output interface implementation.
-     *
-     * @var \Illuminate\Console\OutputStyle
-     */
-    public $logsOutput;
-
     public function handle()
     {
         if (!$this->uuid) {
@@ -42,7 +35,8 @@ class SyncCatalogJob implements ShouldQueue
         $this->getSyncPipes($syncTask)->each(function (string $syncPipe) use ($syncTask) {
             try {
                 (new $syncPipe($syncTask))->execute();
-            } catch (Throwable | Exception $ex) {
+            }
+            catch (Throwable | Exception $ex) {
                 $syncTask->noteException($ex);
             }
 
@@ -50,6 +44,13 @@ class SyncCatalogJob implements ShouldQueue
         });
 
         $syncTask->markAsComplete();
+    }
+
+    public function uuid(string $uuid): self
+    {
+        $this->uuid = $uuid;
+
+        return $this;
     }
 
     protected function getSyncPipes($syncTask)
@@ -60,7 +61,8 @@ class SyncCatalogJob implements ShouldQueue
             $pipes[] = SyncPipes\PullCategories::class;
             $pipes[] = SyncPipes\PullItemOptions::class;
             $pipes[] = SyncPipes\PullItems::class;
-        } else {
+        }
+        else {
             $pipes[] = SyncPipes\PushCategories::class;
             $pipes[] = SyncPipes\PushItemOptions::class;
             $pipes[] = SyncPipes\PushItems::class;

@@ -34,6 +34,19 @@ class SyncTask extends Model
         return $model;
     }
 
+    public static function startSync(string $uuid, string $type)
+    {
+        $syncTask = self::firstOrCreate([
+            'uuid' => $uuid,
+        ]);
+
+        $syncTask->type = $type;
+
+        $syncTask->save();
+
+        return $syncTask;
+    }
+
     public function getStatusNameAttribute($value)
     {
         return lang(
@@ -76,10 +89,6 @@ class SyncTask extends Model
 
     public function note(string $note)
     {
-        if (!is_null($this->syncJob->logsOutput)) {
-            $this->syncJob->logsOutput->writeln($note);
-        }
-
         $notes = (array)$this->notes;
         $notes[] = $note;
         $this->notes = $notes;
