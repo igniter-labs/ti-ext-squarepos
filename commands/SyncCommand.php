@@ -2,8 +2,9 @@
 
 namespace IgniterLabs\SquarePOS\Commands;
 
-use IgniterLabs\SquarePOS\Classes\Dispatcher;
-use IgniterLabs\SquarePOS\Jobs\SyncCatalogJob;
+use Igniter\Flame\Support\Str;
+use IgniterLabs\SquarePOS\Models\Settings;
+use IgniterLabs\SquarePOS\Models\SyncTask;
 use Illuminate\Console\Command;
 
 class SyncCommand extends Command
@@ -26,9 +27,18 @@ class SyncCommand extends Command
      */
     public function handle()
     {
-        Dispatcher::create(SyncCatalogJob::class)
-            ->setLogsOutput($this->output)
-            ->dispatchSync();
+        $lastUuid = Settings::get('sync_inventory_uuid');
+
+        $syncTask = SyncTask::startSync(Str::uuid(), Settings::getSystemOfRecord());
+
+        if ($lastUuid && ($lastSyncTask = SyncTask::findBy($lastUuid))) {
+            $syncTask->config_data = $lastSyncTask->config_data;
+            $syncTask->save();
+        }
+
+        $syncTask->dispatchSync();
+
+        Settings::set('sync_inventory_uuid', $syncTask->uuid);
 
         $this->output->writeln('Sync complete');
     }

@@ -4,6 +4,8 @@ namespace IgniterLabs\SquarePOS\Models;
 
 use Exception;
 use Igniter\Flame\Database\Model;
+use Igniter\Flame\Exception\ApplicationException;
+use IgniterLabs\SquarePOS\Jobs\SyncCatalogJob;
 use Throwable;
 
 class SyncTask extends Model
@@ -45,6 +47,19 @@ class SyncTask extends Model
         $syncTask->save();
 
         return $syncTask;
+    }
+
+    public function dispatchSync()
+    {
+        if (!Settings::isConnected()) {
+            throw new ApplicationException(lang('igniterlabs.squarepos::default.alert_not_connected'));
+        }
+
+        if (Settings::locationMapping()->isEmpty()) {
+            throw new ApplicationException(lang('igniterlabs.squarepos::default.alert_no_location_mapping'));
+        }
+
+        dispatch((new SyncCatalogJob())->uuid($this->uuid));
     }
 
     public function getStatusNameAttribute($value)

@@ -14,11 +14,30 @@ class StockAction extends ModelAction
     use ExtensionTrait;
     use LocationHelpers;
 
+    public function __construct($model)
+    {
+        parent::__construct($model);
+
+        $model->addCasts(['square_calculated_at' => 'datetime']);
+    }
+
     public function squareExportItems(SyncTask $syncTask, callable $callback)
     {
         return $this->model->newQuery()
             ->with(['stockable', 'location'])
             ->whereNotNull('quantity')
+            ->where('stockable_type', 'menus')
+            ->whereHas('stockable', function ($query) {
+                $query->whereNotNull('square_variation_id');
+            })
+            ->whereHasOrDoesntHaveLocation(array_keys($syncTask->mappedLocationIds()))
+            ->chunkById($syncTask->batchSize(), $callback);
+    }
+
+    public function squareImportItems(SyncTask $syncTask, callable $callback)
+    {
+        $this->model->newQuery()
+            ->with(['stockable', 'location'])
             ->where('stockable_type', 'menus')
             ->whereHas('stockable', function ($query) {
                 $query->whereNotNull('square_variation_id');

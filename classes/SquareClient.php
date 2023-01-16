@@ -8,6 +8,7 @@ use Square\Environment;
 use Square\Models\BatchChangeInventoryRequest;
 use Square\Models\BatchDeleteCatalogObjectsRequest;
 use Square\Models\BatchRetrieveCatalogObjectsRequest;
+use Square\Models\BatchRetrieveInventoryCountsRequest;
 use Square\Models\BatchUpsertCatalogObjectsRequest;
 use Square\Models\Location;
 use Square\Models\SearchCatalogObjectsRequest;
@@ -46,7 +47,7 @@ class SquareClient
     }
 
     //
-    //
+    // Catalog
     //
 
     public function searchCatalogObjects(array $options, bool $related = false, bool $deleted = false)
@@ -144,8 +145,39 @@ class SquareClient
     }
 
     //
+    //  Inventory
     //
-    //
+
+    public function batchRetrieveInventoryCounts(array $options)
+    {
+        $body = new BatchRetrieveInventoryCountsRequest();
+        $body->setCatalogObjectIds(array_get($options, 'catalogObjectIds'));
+        $body->setLocationIds(array_get($options, 'locationIds'));
+
+        if ($states = array_get($options, 'states')) {
+            $body->setStates($states);
+        }
+
+        if ($cursor = array_get($options, 'cursor')) {
+            $body->setCursor($cursor);
+        }
+
+        if ($limit = array_get($options, 'limit')) {
+            $body->setLimit($limit);
+        }
+
+        if ($updatedAfter = array_get($options, 'updatedAfter')) {
+            $body->setUpdatedAfter($updatedAfter);
+        }
+
+        $response = $this->client->getInventoryApi()->batchRetrieveInventoryCounts($body);
+
+        if (!$response->isSuccess()) {
+            throw new ClientException($response);
+        }
+
+        return new CatalogResponse($response->getResult());
+    }
 
     public function batchChangeInventory(array $changes, bool $ignoreUnchanged = true)
     {
@@ -159,6 +191,6 @@ class SquareClient
             throw new ClientException($response);
         }
 
-        return $response->getResult();
+        return new CatalogResponse($response->getResult());
     }
 }

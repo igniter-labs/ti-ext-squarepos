@@ -54,19 +54,18 @@ class SyncCatalogJob implements ShouldQueue
 
     protected function getSyncPipes($syncTask)
     {
-        $pipes[] = SyncPipes\StartSync::class;
-
         if ($syncTask->isSystemOfRecordSquare()) {
             $pipes[] = SyncPipes\PullCategories::class;
             $pipes[] = SyncPipes\PullItemOptions::class;
             $pipes[] = SyncPipes\PullItems::class;
-        } else {
+            $pipes[] = SyncPipes\PullStocks::class;
+        }
+        else {
             $pipes[] = SyncPipes\PushCategories::class;
             $pipes[] = SyncPipes\PushItemOptions::class;
             $pipes[] = SyncPipes\PushItems::class;
+            $pipes[] = SyncPipes\PushStocks::class;
         }
-
-        $pipes[] = SyncPipes\CompleteSync::class;
 
         return collect($pipes);
     }

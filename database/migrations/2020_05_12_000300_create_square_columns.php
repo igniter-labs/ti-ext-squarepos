@@ -35,11 +35,12 @@ class CreateSquareColumns extends Migration
                     $table->string('square_variation_id')->nullable()->index();
                     $table->string('square_variation_version')->nullable()->index();
                 }
-//
-//                if ($squareTable === 'menu_item_option_values') {
-//                    $table->string('square_modifier_list_id')->nullable()->index();
-//                    $table->string('square_modifier_list_version')->nullable()->index();
-//                }
+            });
+        }
+
+        if (!Schema::hasColumn('stocks', 'square_calculated_at')) {
+            Schema::table('stocks', function (Blueprint $table) {
+                $table->timestamp('square_calculated_at')->nullable();
             });
         }
     }

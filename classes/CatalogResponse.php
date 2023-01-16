@@ -27,6 +27,13 @@ class CatalogResponse
                     return $catalogObject->getId();
                 });
         }
+
+        if (method_exists($response, 'getCounts')) {
+            $this->catalogObjects = collect($response->getCounts() ?? [])
+                ->keyBy(function ($inventoryCount) {
+                    return $inventoryCount->getCatalogObjectId();
+                });
+        }
     }
 
     /**

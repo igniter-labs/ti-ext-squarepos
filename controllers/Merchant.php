@@ -5,7 +5,6 @@ namespace IgniterLabs\SquarePOS\Controllers;
 use Admin\Classes\AdminController;
 use Exception;
 use Igniter\Flame\Exception\ApplicationException;
-use IgniterLabs\SquarePOS\Jobs\SyncCatalogJob;
 use IgniterLabs\SquarePOS\Models\Settings;
 use IgniterLabs\SquarePOS\Models\SyncTask;
 use Illuminate\Support\Facades\Redirect;
@@ -59,17 +58,7 @@ class Merchant extends AdminController
     public function sync($context, $action = null)
     {
         rescue(function () {
-            if (!Settings::isConnected()) {
-                throw new ApplicationException(lang('igniterlabs.squarepos::default.alert_not_connected'));
-            }
-
-            if (Settings::locationMapping()->isEmpty()) {
-                throw new ApplicationException(lang('igniterlabs.squarepos::default.alert_no_location_mapping'));
-            }
-
-            $syncTask = SyncTask::startSync(Str::uuid(), Settings::getSystemOfRecord());
-
-            dispatch((new SyncCatalogJob())->uuid($syncTask->uuid));
+            SyncTask::startSync(Str::uuid(), Settings::getSystemOfRecord())->dispatchSync();
 
             flash()->success(lang('igniterlabs.squarepos::default.alert_sync_started'));
         }, function ($ex) {

@@ -8,6 +8,7 @@ use Admin\Models\Menu_options_model;
 use Admin\Models\Menus_model;
 use Admin\Models\Stocks_model;
 use IgniterLabs\SquarePOS\Classes\SquareClient;
+use IgniterLabs\SquarePOS\Commands\CleanupCommand;
 use IgniterLabs\SquarePOS\Commands\SyncCommand;
 use IgniterLabs\SquarePOS\Models\Settings;
 use System\Classes\BaseExtension;
@@ -20,6 +21,7 @@ class Extension extends BaseExtension
     public function register()
     {
         $this->registerConsoleCommand('square.sync', SyncCommand::class);
+        $this->registerConsoleCommand('square.cleanup', CleanupCommand::class);
 
         $this->app->bind(SquareClient::class, function ($app) {
             return new SquareClient(Settings::connectionData());
@@ -57,7 +59,17 @@ class Extension extends BaseExtension
 
     public function registerSchedule($schedule)
     {
-//        $schedule->call('square::sync-inventory')->everyMinute();
+        $schedule
+            ->call('square::sync')
+            ->withoutOverlapping(5)
+            ->runInBackground()
+            ->environments('production')
+            ->everyMinute();
+
+        $schedule
+            ->command('square:cleanup')
+            ->name('Sync Task Cleanup')
+            ->daily();
     }
 
     protected function extendCoreModels(): void
