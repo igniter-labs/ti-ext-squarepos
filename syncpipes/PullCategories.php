@@ -12,12 +12,13 @@ class PullCategories extends AbstractSyncPipe
             'object_types' => ['CATEGORY'],
             'limit' => $this->syncTask->batchSize(),
             'cursor' => $this->syncTask->getConfigData('categoryCursor'),
-            'beginTime' => $this->syncTask->getConfigData('categoryBeginTime'),
+            'beginTime' => $this->syncTask->getBeginTimeFor('category'),
         ];
 
-        $response = $this->square->searchCatalogObjects($options);
+        if (!$this->hasCursor)
+            $this->syncTask->logBeginTimeFor('category');
 
-        $nextBeingTime = now()->toISOString();
+        $response = $this->square->searchCatalogObjects($options);
 
         $this->syncTask->note('Importing categories from square');
 
@@ -38,8 +39,11 @@ class PullCategories extends AbstractSyncPipe
             }
         });
 
-        $this->handleResponseCursor($response, 'categoryCursor');
+        $this->handleResponseCursor('categoryCursor', $response->getResponse()->getCursor());
+    }
 
-        $this->syncTask->setConfigData('categoryBeginTime', $nextBeingTime)->save();
+    public function onComplete()
+    {
+        $this->syncTask->forgetConfigData('categoryCursor');
     }
 }

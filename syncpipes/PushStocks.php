@@ -20,6 +20,9 @@ class PushStocks extends AbstractSyncPipe
 
                 $this->updateSquareAttributes($stocks, $response);
             }
+            else {
+                $this->syncTask->note('No stocks to export');
+            }
         });
     }
 

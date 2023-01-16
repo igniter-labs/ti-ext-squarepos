@@ -144,6 +144,16 @@ class SyncTask extends Model
         return $this;
     }
 
+    public function getBeginTimeFor($type)
+    {
+        $this->getConfigData($type.'BeginTime');
+    }
+
+    public function logBeginTimeFor($type)
+    {
+        $this->setConfigData($type.'BeginTime', now()->toISOString())->save();
+    }
+
     public function getConfigData($key, $default = null)
     {
         return array_get($this->config_data, $key, $default);

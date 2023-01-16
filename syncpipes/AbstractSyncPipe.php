@@ -2,7 +2,6 @@
 
 namespace IgniterLabs\SquarePOS\SyncPipes;
 
-use IgniterLabs\SquarePOS\Classes\CatalogResponse;
 use IgniterLabs\SquarePOS\Classes\SquareClient;
 use IgniterLabs\SquarePOS\Models\SyncTask;
 
@@ -18,6 +17,8 @@ abstract class AbstractSyncPipe
      */
     protected SyncTask $syncTask;
 
+    protected bool $hasCursor = false;
+
     public function __construct(SyncTask $syncTask)
     {
         $this->syncTask = $syncTask;
@@ -27,9 +28,14 @@ abstract class AbstractSyncPipe
 
     abstract public function execute();
 
-    protected function handleResponseCursor(CatalogResponse $response, $key = null): void
+    public function onComplete()
     {
-        if ($cursor = $response->getResponse()->getCursor()) {
+    }
+
+    protected function handleResponseCursor($key, ?string $cursor): void
+    {
+        if (strlen($cursor ?? '')) {
+            $this->hasCursor = true;
             $this->syncTask->setConfigData($key, $cursor)->save();
 
             $this->execute();

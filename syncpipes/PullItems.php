@@ -11,12 +11,13 @@ class PullItems extends AbstractSyncPipe
     {
         $options = [
             'object_types' => ['ITEM'],
-            'cursor' => $this->syncTask->getConfigData('itemCursor'),
             'limit' => $this->syncTask->batchSize(),
-            'beginTime' => $this->syncTask->getConfigData('itemBeginTime'),
+            'cursor' => $this->syncTask->getConfigData('itemCursor'),
+            'beginTime' => $this->syncTask->getBeginTimeFor('item'),
         ];
 
-        $nextBeingTime = now()->toISOString();
+        if (!$this->hasCursor)
+            $this->syncTask->logBeginTimeFor('item');
 
         $response = $this->square->searchCatalogObjects($options, true);
 
@@ -27,7 +28,8 @@ class PullItems extends AbstractSyncPipe
                 if ($staticModel->newQuery()->where('square_id', $catalogObject->getId())->delete()) {
                     $this->syncTask->noteDeleted($catalogObject, $catalogObject->getCategoryData()->getName());
                 }
-            } else {
+            }
+            else {
                 $response = $this->square->retrieveCatalogObject($catalogObject->getId());
                 $catalogObject = $response->getObject();
 
@@ -53,8 +55,11 @@ class PullItems extends AbstractSyncPipe
             }
         });
 
-        $this->handleResponseCursor($response, 'itemCursor');
+        $this->handleResponseCursor('itemCursor', $response->getResponse()->getCursor());
+    }
 
-        $this->syncTask->setConfigData('itemBeginTime', $nextBeingTime)->save();
+    public function onComplete()
+    {
+        $this->syncTask->forgetConfigData('itemCursor');
     }
 }

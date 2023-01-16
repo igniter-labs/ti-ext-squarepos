@@ -26,6 +26,7 @@ class StockAction extends ModelAction
         return $this->model->newQuery()
             ->with(['stockable', 'location'])
             ->whereNotNull('quantity')
+            ->where('is_tracked', true)
             ->where('stockable_type', 'menus')
             ->whereHas('stockable', function ($query) {
                 $query->whereNotNull('square_variation_id');
@@ -38,6 +39,8 @@ class StockAction extends ModelAction
     {
         $this->model->newQuery()
             ->with(['stockable', 'location'])
+            ->whereNotNull('quantity')
+            ->where('is_tracked', true)
             ->where('stockable_type', 'menus')
             ->whereHas('stockable', function ($query) {
                 $query->whereNotNull('square_variation_id');

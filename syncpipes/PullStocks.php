@@ -12,7 +12,11 @@ class PullStocks extends AbstractSyncPipe
     {
         $this->syncTask->note('Importing stock counts from square');
 
-        Stocks_model::squareImportItems($this->syncTask, function ($stocks) {
+        $stockBeginTime = $this->syncTask->getConfigData('stockBeginTime');
+
+        $this->syncTask->logBeginTimeFor('stock');
+
+        Stocks_model::squareImportItems($this->syncTask, function ($stocks) use ($stockBeginTime) {
             $catalogObjectIds = $locationIds = [];
             $stocks->each(function ($stock) use (&$catalogObjectIds, &$locationIds) {
                 if ($stock->stockable->square_variation_id) {
@@ -25,8 +29,7 @@ class PullStocks extends AbstractSyncPipe
                 'catalogObjectIds' => array_unique(array_filter($catalogObjectIds)),
                 'locationIds' => array_unique(array_filter($locationIds)),
                 'limit' => $this->syncTask->batchSize(),
-                'cursor' => $this->syncTask->getConfigData('stockCursor'),
-                'updateAfter' => $this->syncTask->getConfigData('stockBeginTime'),
+                'updateAfter' => $stockBeginTime,
             ];
 
             $response = $this->square->batchRetrieveInventoryCounts($options);

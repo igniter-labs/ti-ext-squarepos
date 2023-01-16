@@ -33,11 +33,16 @@ class SyncCatalogJob implements ShouldQueue
         $syncTask->setSyncJob($this);
 
         $this->getSyncPipes($syncTask)->each(function (string $syncPipe) use ($syncTask) {
+            $syncPipe = new $syncPipe($syncTask);
+
             try {
-                (new $syncPipe($syncTask))->execute();
-            } catch (Throwable | Exception $ex) {
+                $syncPipe->execute();
+            }
+            catch (Throwable | Exception $ex) {
                 $syncTask->noteException($ex);
             }
+
+            $syncPipe->onComplete();
 
             $syncTask->save();
         });

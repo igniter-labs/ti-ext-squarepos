@@ -11,12 +11,13 @@ class PullItemOptions extends AbstractSyncPipe
     {
         $options = [
             'object_types' => ['MODIFIER_LIST'],
-            'cursor' => $this->syncTask->getConfigData('modifierCursor'),
             'limit' => $this->syncTask->batchSize(),
-            'beginTime' => $this->syncTask->getConfigData('modifierBeginTime'),
+            'cursor' => $this->syncTask->getConfigData('modifierCursor'),
+            'beginTime' => $this->syncTask->getBeginTimeFor('modifier'),
         ];
 
-        $nextBeingTime = now()->toISOString();
+        if (!$this->hasCursor)
+            $this->syncTask->logBeginTimeFor('modifier');
 
         $response = $this->square->searchCatalogObjects($options, true);
 
@@ -25,7 +26,8 @@ class PullItemOptions extends AbstractSyncPipe
         Menu_options_model::squareImportItems($response->getObjects(), function (CatalogObject $catalogObject, $staticModel) {
             if ($catalogObject->getIsDeleted()) {
                 $staticModel->newQuery()->where('square_id', $catalogObject->getId())->delete();
-            } else {
+            }
+            else {
                 $menuOption = $staticModel->createFromSquareModifierList($catalogObject);
 
                 $menuOption->squareAttachLocation($catalogObject);
@@ -36,8 +38,11 @@ class PullItemOptions extends AbstractSyncPipe
             }
         });
 
-        $this->handleResponseCursor($response, 'modifierCursor');
+        $this->handleResponseCursor('modifierCursor', $response->getResponse()->getCursor());
+    }
 
-        $this->syncTask->setConfigData('modifierBeginTime', $nextBeingTime)->save();
+    public function onComplete()
+    {
+        $this->syncTask->forgetConfigData('modifierCursor');
     }
 }
