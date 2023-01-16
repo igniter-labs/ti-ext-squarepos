@@ -40,19 +40,23 @@ class PullStocks extends AbstractSyncPipe
                         && $stock->squareLocationRemoteId() === $inventoryCount->getLocationId();
                 });
 
-                if (!$stock)
+                if (!$stock) {
                     return true;
+                }
 
-                if (Carbon::parse($inventoryCount->getCalculatedAt())->isAfter($stock->square_calculated_at))
+                if (Carbon::parse($inventoryCount->getCalculatedAt())->isAfter($stock->square_calculated_at)) {
                     return true;
+                }
 
                 $stock->updateStock($inventoryCount->getQuantity(), Stocks_model::STATE_RECOUNT);
 
                 $stock->square_calculated_at = $inventoryCount->getCalculatedAt();
                 $stock->save();
 
-                $this->syncTask->note(sprintf('Updated stock count for %s to %s',
-                    $stock->stockable->name, $inventoryCount->getQuantity()
+                $this->syncTask->note(sprintf(
+                    'Updated stock count for %s to %s',
+                    $stock->stockable->name,
+                    $inventoryCount->getQuantity()
                 ));
             });
         });

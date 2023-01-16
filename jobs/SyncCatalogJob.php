@@ -37,8 +37,7 @@ class SyncCatalogJob implements ShouldQueue
 
             try {
                 $syncPipe->execute();
-            }
-            catch (Throwable | Exception $ex) {
+            } catch (Throwable | Exception $ex) {
                 $syncTask->noteException($ex);
             }
 
@@ -64,8 +63,7 @@ class SyncCatalogJob implements ShouldQueue
             $pipes[] = SyncPipes\PullItemOptions::class;
             $pipes[] = SyncPipes\PullItems::class;
             $pipes[] = SyncPipes\PullStocks::class;
-        }
-        else {
+        } else {
             $pipes[] = SyncPipes\PushCategories::class;
             $pipes[] = SyncPipes\PushItemOptions::class;
             $pipes[] = SyncPipes\PushItems::class;

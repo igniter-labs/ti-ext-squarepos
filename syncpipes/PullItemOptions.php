@@ -16,8 +16,9 @@ class PullItemOptions extends AbstractSyncPipe
             'beginTime' => $this->syncTask->getBeginTimeFor('modifier'),
         ];
 
-        if (!$this->hasCursor)
+        if (!$this->hasCursor) {
             $this->syncTask->logBeginTimeFor('modifier');
+        }
 
         $response = $this->square->searchCatalogObjects($options, true);
 
@@ -26,8 +27,7 @@ class PullItemOptions extends AbstractSyncPipe
         Menu_options_model::squareImportItems($response->getObjects(), function (CatalogObject $catalogObject, $staticModel) {
             if ($catalogObject->getIsDeleted()) {
                 $staticModel->newQuery()->where('square_id', $catalogObject->getId())->delete();
-            }
-            else {
+            } else {
                 $menuOption = $staticModel->createFromSquareModifierList($catalogObject);
 
                 $menuOption->squareAttachLocation($catalogObject);

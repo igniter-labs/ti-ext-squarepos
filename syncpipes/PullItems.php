@@ -16,8 +16,9 @@ class PullItems extends AbstractSyncPipe
             'beginTime' => $this->syncTask->getBeginTimeFor('item'),
         ];
 
-        if (!$this->hasCursor)
+        if (!$this->hasCursor) {
             $this->syncTask->logBeginTimeFor('item');
+        }
 
         $response = $this->square->searchCatalogObjects($options, true);
 
@@ -28,8 +29,7 @@ class PullItems extends AbstractSyncPipe
                 if ($staticModel->newQuery()->where('square_id', $catalogObject->getId())->delete()) {
                     $this->syncTask->noteDeleted($catalogObject, $catalogObject->getCategoryData()->getName());
                 }
-            }
-            else {
+            } else {
                 $response = $this->square->retrieveCatalogObject($catalogObject->getId());
                 $catalogObject = $response->getObject();
 

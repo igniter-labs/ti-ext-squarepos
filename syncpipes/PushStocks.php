@@ -19,8 +19,7 @@ class PushStocks extends AbstractSyncPipe
                 $response = $this->square->batchChangeInventory($changes);
 
                 $this->updateSquareAttributes($stocks, $response);
-            }
-            else {
+            } else {
                 $this->syncTask->note('No stocks to export');
             }
         });
@@ -47,13 +46,17 @@ class PushStocks extends AbstractSyncPipe
     protected function updateSquareAttributes($stocks, $response)
     {
         $stocks->each(function ($stock) use ($response) {
-            if (!$inventoryCount = $response->getObject($stock->stockable->square_variation_id))
+            if (!$inventoryCount = $response->getObject($stock->stockable->square_variation_id)) {
                 return true;
+            }
 
             $stock->square_calculated_at = $inventoryCount->getCalculatedAt();
             if ($stock->save()) {
-                $this->syncTask->note(sprintf('Updated stock count for %s to %s at %s',
-                    $stock->stockable->getStockableName(), $inventoryCount->getQuantity(), make_carbon($inventoryCount->getCalculatedAt())->toDateTimeString()
+                $this->syncTask->note(sprintf(
+                    'Updated stock count for %s to %s at %s',
+                    $stock->stockable->getStockableName(),
+                    $inventoryCount->getQuantity(),
+                    make_carbon($inventoryCount->getCalculatedAt())->toDateTimeString()
                 ));
             }
         });
