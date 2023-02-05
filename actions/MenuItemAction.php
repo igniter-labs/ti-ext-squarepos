@@ -99,7 +99,7 @@ class MenuItemAction extends ModelAction
         $attributes = [
             'menu_name' => $catalogObject->getItemData()->getName(),
             'menu_description' => $catalogObject->getItemData()->getDescription(),
-            'menu_price' => $variationObject->getItemVariationData()->getPriceMoney()->getAmount(),
+            'menu_price' => $variationObject->getItemVariationData()->getPriceMoney()->getAmount() / 100,
             'square_version' => $catalogObject->getVersion(),
             'square_variation_id' => $variationObject->getId(),
             'square_variation_version' => $variationObject->getVersion(),
