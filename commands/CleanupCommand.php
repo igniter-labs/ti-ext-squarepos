@@ -28,7 +28,7 @@ class CleanupCommand extends Command
     public function handle()
     {
         $this->comment('Cleaning old sync task...');
-        $logTTL = now()->subDays(static::$logTTL)->format('Y-m-d H:i:s');
+        $logTTL = now()->subDays(config('system.deleteOldRecordsDays', static::$logTTL))->format('Y-m-d H:i:s');
 
         $amountDeleted = SyncTask::where('created_at', '<', $logTTL)->delete();
 
