@@ -70,12 +70,12 @@ class CreateSquareColumns extends Migration
                     ]);
                 }
 
-//                if ($squareTable === 'menu_item_option_values') {
-//                    $table->dropColumn([
-//                        'square_modifier_list_id',
-//                        'square_modifier_list_version',
-//                    ]);
-//                }
+                //                if ($squareTable === 'menu_item_option_values') {
+                //                    $table->dropColumn([
+                //                        'square_modifier_list_id',
+                //                        'square_modifier_list_version',
+                //                    ]);
+                //                }
             });
         }
     }
